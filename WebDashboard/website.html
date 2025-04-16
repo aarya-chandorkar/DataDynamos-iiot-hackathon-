@@ -1,0 +1,406 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Carbon Footprint Tracker</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet" />
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <style>
+    body {
+      margin: 0;
+      font-family: 'Inter', sans-serif;
+      background-color: #121212;
+      color: #e0e0e0;
+      overflow-x: hidden;
+    }
+
+    header {
+      background-color: #1e1e1e;
+      padding: 20px;
+      text-align: center;
+      font-size: 28px;
+      font-weight: 800;
+      color: #4caf50;
+      border-bottom: 2px solid #333;
+      position: sticky;
+      top: 0;
+      z-index: 1000;
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.5);
+    }
+
+    .clock {
+      position: fixed;
+      top: 15px;
+      right: 15px;
+      font-size: 14px;
+      background-color: #1e1e1e;
+      padding: 10px 15px;
+      color: #fff;
+      border-radius: 8px;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
+      z-index: 2000;
+      font-family: 'Inter', sans-serif;
+      text-align: center;
+      line-height: 1.4;
+    }
+
+    .clock-time {
+      font-size: 20px;
+      font-weight: 700;
+      color: #4caf50;
+    }
+
+    .clock-day {
+      font-size: 12px;
+      color: #ccc;
+    }
+
+    .clock-date {
+      font-size: 12px;
+      color: #888;
+    }
+
+    .hero {
+      text-align: center;
+      padding: 30px 20px;
+      font-size: 18px;
+      color: #bbb;
+      max-width: 800px;
+      margin: 20px auto;
+      opacity: 0.9;
+      font-weight: 400;
+      background: #1e1e1e;
+      border-radius: 12px;
+      box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3);
+    }
+
+    .impact-card {
+      background: #1e1e1e;
+      border: 1px solid #333;
+      border-radius: 16px;
+      margin: 30px auto;
+      max-width: 850px;
+      padding: 25px;
+      box-shadow: 0 6px 20px rgba(0, 0, 0, 0.4);
+      color: #e0e0e0;
+      line-height: 1.6;
+      font-size: 16px;
+      text-align: center;
+    }
+
+    .eco-header {
+      font-size: 22px;
+      font-weight: 700;
+      margin-bottom: 15px;
+      color: #4caf50;
+    }
+
+    .highlight {
+      color: #4caf50;
+      font-weight: 600;
+    }
+
+    .eco-badge {
+      background: rgba(76, 175, 80, 0.2);
+      border: 1px solid #4caf50;
+      border-radius: 20px;
+      padding: 5px 12px;
+      font-weight: 600;
+      color: #4caf50;
+      box-shadow: 0 0 8px rgba(76, 175, 80, 0.3);
+      margin-left: 5px;
+    }
+
+    .charts {
+      display: grid;
+      grid-template-columns: 1fr;
+      grid-gap: 30px;
+      padding: 40px 20px;
+    }
+
+    .chart-container {
+      background: #1e1e1e;
+      border: 1px solid #333;
+      border-radius: 16px;
+      padding: 20px;
+      box-shadow: 0 6px 20px rgba(0, 0, 0, 0.4);
+      transition: transform 0.3s ease, box-shadow 0.3s ease;
+      height: 300px;
+    }
+
+    .chart-container:hover {
+      transform: scale(1.03);
+      box-shadow: 0 8px 30px rgba(0, 0, 0, 0.5);
+    }
+
+    .chart-title {
+      font-size: 16px;
+      font-weight: 600;
+      margin-bottom: 10px;
+      color: #fff;
+      text-shadow: 0 0 6px #4caf50;
+    }
+
+    footer {
+      text-align: center;
+      padding: 15px;
+      font-size: 14px;
+      background-color: #1e1e1e;
+      color: #aaa;
+      border-top: 2px solid #333;
+    }
+
+    @media (min-width: 768px) {
+      .charts {
+        grid-template-columns: 1fr 1fr;
+        padding: 40px;
+      }
+    }
+
+    .tip-box {
+      background-color: rgba(76, 175, 80, 0.1);
+      border-radius: 12px;
+      padding: 20px;
+      margin-top: 30px;
+      box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3);
+      color: #4caf50;
+    }
+
+    .tip-box h3 {
+      color: #fff;
+      font-weight: 600;
+      text-shadow: 0 0 5px #4caf50;
+    }
+
+    .warning-box {
+      background-color: rgba(255, 69, 58, 0.1);
+      border: 1px solid #ff453a;
+      border-radius: 12px;
+      padding: 20px;
+      margin: 20px auto;
+      max-width: 800px;
+      color: #ff453a;
+      font-weight: bold;
+      box-shadow: 0 4px 16px rgba(255, 69, 58, 0.3);
+    }
+
+    canvas {
+      width: 100% !important;
+      height: 100% !important;
+    }
+  </style>
+</head>
+<body>
+  <header>🌍 Carbon Footprint Tracker</header>
+  <div class="clock" id="clock">
+    <span class="clock-time">🕒 12:45:32 PM</span>
+    <span class="clock-day">Monday</span>
+    <span class="clock-date">April 16, 2025</span>
+  </div>
+
+  <div class="hero">
+    Realtime monitoring of soil moisture, ambient light, and weather data – helping you understand environmental impact and sustainability from the ground up.
+  </div>
+
+  <div class="impact-card">
+    <div class="eco-header">🌿 Smart Sustainability</div>
+    <p>
+      Our smart device uses a <strong>soil moisture sensor</strong> and an <strong>LDR (light sensor)</strong> to promote eco-friendly habits.
+      By tracking when plants actually need water, we <span class="highlight">avoid unnecessary watering</span>,
+      saving energy used in water treatment.
+    </p>
+    <p>
+      These small actions lead to <span class="highlight">lower carbon emissions</span> which can help in saving the environment.
+    </p>
+    <p style="margin-top: 10px;"><em>It’s all about turning awareness into impact!</em></p>
+  </div>
+
+  <div class="charts">
+    <div class="chart-container">
+      <div class="chart-title">Soil Moisture Levels (%)</div>
+      <canvas id="soilChart"></canvas>
+    </div>
+    <div class="chart-container">
+      <div class="chart-title">Ambient Light Intensity (%)</div>
+      <canvas id="lightChart"></canvas>
+    </div>
+  </div>
+
+  <div id="warningBox" class="warning-box" style="display: none;"></div>
+
+  <div class="tip-box">
+    <h3>Tip for Sustainability</h3>
+    <p>Maintain optimal soil moisture levels to avoid excessive water usage. Use the data to improve your irrigation practices!</p>
+  </div>
+
+  <div class="impact-card" id="carbonCard">
+    <div class="eco-header">🌎 Your Impact: Carbon Emissions Reduced</div>
+    <p>
+      You've avoided wasting approximately <span class="highlight" id="litersSaved">0</span> liters of water.
+    </p>
+    <p>
+      That's roughly <span class="highlight" id="co2Saved">0.00</span> kg of CO₂ emissions saved so far! 💚
+    </p>
+    <p><em>Keep growing green habits. Every drop matters!</em></p>
+  </div>
+
+  <footer>Made By Data Dynamos for Prototype Hackathon 2.0 | Powered by ThingSpeak</footer>
+
+  <script>
+    window.addEventListener('DOMContentLoaded', () => {
+      function updateClock() {
+        const now = new Date();
+        const hours = now.getHours();
+        const minutes = now.getMinutes().toString().padStart(2, '0');
+        const seconds = now.getSeconds().toString().padStart(2, '0');
+        const day = now.toLocaleString('en-us', { weekday: 'long' });
+        const date = now.toLocaleDateString();
+        const time = `${hours % 12 || 12}:${minutes}:${seconds} ${hours >= 12 ? 'PM' : 'AM'}`;
+        document.getElementById('clock').innerHTML = `
+          <span class="clock-time">🕒 ${time}</span>
+          <span class="clock-day">${day}</span>
+          <span class="clock-date">${date}</span>
+        `;
+      }
+      updateClock();
+      setInterval(updateClock, 1000);
+    });
+
+    const apiURL = 'https://api.thingspeak.com/channels/2921362/feeds.json?api_key=GGQFKSK9TDDNO1JX&results=20';
+    let totalOverWaterEvents = 0;
+
+    async function fetchSensorData() {
+      try {
+        const response = await fetch(apiURL);
+        const data = await response.json();
+        const feeds = data.feeds;
+
+        const timestamps = [];
+        const soilData = [];
+        const lightData = [];
+
+        let latestLightWarning = 0;
+        let latestOverWaterWarning = 0;
+
+        feeds.forEach(feed => {
+          const dateObj = new Date(feed.created_at);
+          const timestamp = `${dateObj.toLocaleDateString(undefined, { month: 'short', day: 'numeric' })}, ${dateObj.toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit', hour12: true })}`;
+          timestamps.push(timestamp);
+          soilData.push(parseFloat(feed.field1) || 0);
+          lightData.push(parseFloat(feed.field2) || 0);
+        });
+
+        if (feeds.length > 0) {
+          const latest = feeds[feeds.length - 1];
+          latestLightWarning = parseInt(latest.field3) || 0;
+          latestOverWaterWarning = parseInt(latest.field4) || 0;
+        }
+
+        updateCharts(timestamps, soilData, lightData);
+        updateWarnings(latestLightWarning, latestOverWaterWarning);
+      } catch (error) {
+        console.error('Error fetching data:', error);
+      }
+    }
+
+    function updateCharts(timestamps, soilData, lightData) {
+      const soilCtx = document.getElementById('soilChart').getContext('2d');
+      const lightCtx = document.getElementById('lightChart').getContext('2d');
+
+      new Chart(soilCtx, {
+        type: 'line',
+        data: {
+          labels: timestamps,
+          datasets: [{
+            label: 'Soil Moisture',
+            data: soilData,
+            borderColor: '#76ff03',
+            backgroundColor: 'rgba(118, 255, 3, 0.2)',
+            fill: true,
+            tension: 0.4
+          }]
+        },
+        options: chartOptions()
+      });
+
+      new Chart(lightCtx, {
+        type: 'line',
+        data: {
+          labels: timestamps,
+          datasets: [{
+            label: 'Light Level',
+            data: lightData,
+            borderColor: '#ffc107',
+            backgroundColor: 'rgba(255, 193, 7, 0.2)',
+            fill: true,
+            tension: 0.4
+          }]
+        },
+        options: chartOptions()
+      });
+    }
+
+    function chartOptions() {
+      return {
+        responsive: true,
+        plugins: {
+          legend: {
+            labels: {
+              color: '#fff'
+            }
+          }
+        },
+        scales: {
+          x: {
+            ticks: {
+              color: '#fff'
+            },
+            title: {
+              color: '#fff'
+            }
+          },
+          y: {
+            ticks: {
+              color: '#fff'
+            },
+            title: {
+              color: '#fff'
+            }
+          }
+        }
+      };
+    }
+
+    function updateWarnings(lightWarning, overWaterWarning) {
+      const warningBox = document.getElementById('warningBox');
+
+      if (lightWarning) {
+        warningBox.style.display = 'block';
+        warningBox.innerHTML = "⚠️ Excess light detected! It can damage your plants. Consider adjusting the lighting.";
+      } else if (overWaterWarning) {
+        warningBox.style.display = 'block';
+        warningBox.innerHTML = "⚠️ Overwatering detected! Excess water usage is leading to higher carbon emissions and damaging plants. Reduce watering to save plants and resources!";
+      } else {
+        warningBox.style.display = 'none';
+      }
+
+      updateImpactStats(overWaterWarning);
+    }
+
+    function updateImpactStats(eventDetected) {
+      if (eventDetected) {
+        totalOverWaterEvents++;
+      }
+      const litersSaved = totalOverWaterEvents * 1;
+      const co2Saved = litersSaved * 0.298;
+
+      document.getElementById('litersSaved').innerText = litersSaved;
+      document.getElementById('co2Saved').innerText = co2Saved.toFixed(2);
+    }
+
+    fetchSensorData();
+    setInterval(fetchSensorData, 30000);
+  </script>
+</body>
+</html>
